@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32407.343
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherDesktop", "WeatherDesktop\WeatherDesktop.csproj", "{099FDB67-03AD-4758-8CD2-F7D45B706077}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Start", "Start\Start.csproj", "{E2CA9EC9-F3DF-43F8-B587-E90AB0435349}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "End", "End\End.csproj", "{6C6916DE-AD2E-4CCD-A0BF-EE073A0254AB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{099FDB67-03AD-4758-8CD2-F7D45B706077}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{099FDB67-03AD-4758-8CD2-F7D45B706077}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{099FDB67-03AD-4758-8CD2-F7D45B706077}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{099FDB67-03AD-4758-8CD2-F7D45B706077}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2CA9EC9-F3DF-43F8-B587-E90AB0435349}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2CA9EC9-F3DF-43F8-B587-E90AB0435349}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2CA9EC9-F3DF-43F8-B587-E90AB0435349}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2CA9EC9-F3DF-43F8-B587-E90AB0435349}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C6916DE-AD2E-4CCD-A0BF-EE073A0254AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C6916DE-AD2E-4CCD-A0BF-EE073A0254AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C6916DE-AD2E-4CCD-A0BF-EE073A0254AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C6916DE-AD2E-4CCD-A0BF-EE073A0254AB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DAF912F3-BB72-45B3-927E-7A1F977E9302}
+	EndGlobalSection
+EndGlobal
