@@ -1,8 +1,9 @@
-# WeatherDesktop
+![image](https://github.com/superdun/WeatherDesktop/assets/12810367/4ad01318-21a3-4ecc-988b-db6f31eac502)# WeatherDesktop
 
 ## 简介
 
 WeatherDesktop 可以从风云四号气象卫星获取实时的全彩图片，并自动将其设置为您的桌面背景。
+![image](https://github.com/superdun/WeatherDesktop/assets/12810367/23be6146-043d-4220-8a85-9d36b188f481)
 
 ## 功能
 
