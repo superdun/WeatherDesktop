@@ -1,4 +1,5 @@
-![image](https://github.com/superdun/WeatherDesktop/assets/12810367/4ad01318-21a3-4ecc-988b-db6f31eac502)# WeatherDesktop
+# WeatherDesktop
+![Uploading image.png…]()
 
 ## 简介
 
