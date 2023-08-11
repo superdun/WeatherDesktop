@@ -13,12 +13,11 @@ namespace End
         static void Main(string[] args)
         {
             string command = " /delete /tn \"WeatherDesktop\" /f";
-            Console.OutputEncoding = Encoding.UTF8;
             Process process = new Process();
             process.StartInfo.FileName = "schtasks";
             process.StartInfo.Arguments = command;
             process.Start();
-            Console.WriteLine("删除定时任务成功");
+            Console.WriteLine("SUCCESS,Press Enter to exit");
             Console.ReadLine();
         }
     }
