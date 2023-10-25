@@ -5,6 +5,9 @@ using System.Net;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace WeatherDesktop
 {
@@ -12,16 +15,40 @@ namespace WeatherDesktop
     {
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            string imageUrl = "https://img.nsmc.org.cn/CLOUDIMAGE/FY4A/MTCC/FY4A_DISK.JPG"; 
+            string xmlUrl = @"http://img.nsmc.org.cn/PORTAL/NSMC/XML/FY4A/FY4A_AGRI_IMG_DISK_MTCC_NOM.xml";
 
-            using (WebClient client = new WebClient())
+            using (HttpClient client = new HttpClient())
             {
-                using (Stream stream = client.OpenRead(imageUrl))
+                HttpResponseMessage xmlResponse = await client.GetAsync(xmlUrl);
+                if (xmlResponse.IsSuccessStatusCode)
                 {
-                    var path = MakeImage(stream);
-                    SystemParametersInfo(0x0014, 0, path, 0x01 | 0x02);
+                    string xmlString = await xmlResponse.Content.ReadAsStringAsync();
+                    var imageUrl = XDocument.Parse(xmlString).Descendants("image").First().Attribute("url").Value;
+                    if (string.IsNullOrEmpty(imageUrl))
+                    {
+                        Console.WriteLine("Can not get image url");
+                        return;
+                    }
+                    HttpResponseMessage imgResponse = await client.GetAsync(imageUrl);
+                    if (imgResponse.IsSuccessStatusCode)
+                    {
+                        using (Stream stream = await imgResponse.Content.ReadAsStreamAsync())
+                        {
+                            var path = MakeImage(stream);
+                            SystemParametersInfo(0x0014, 0, path, 0x01 | 0x02);
+                        }
+                        Console.WriteLine("Image downloaded successfully.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error: {imgResponse.StatusCode}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Error: {xmlResponse.StatusCode}");
                 }
             }
         }
