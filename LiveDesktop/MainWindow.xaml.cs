@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -20,87 +24,127 @@ namespace LiveDesktop
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    
+
     public partial class MainWindow : Window
     {
-        private static readonly string FileFolder = "Images";
-        private static readonly string ImgFolder = System.IO.Path.Combine(Directory.GetCurrentDirectory(), FileFolder);
-        private int currentIndex = 0;
-        private DispatcherTimer playTimer;
-        private List<BitmapImage> imageFiles = new List<BitmapImage>();
-        private int playTimeSpan = 90;
-        private int checkTimeSpan = 10000;
+        // 导入 FindWindow API
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetDCEx(IntPtr hwnd, IntPtr hrgnClip, uint flags);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, IntPtr lpszWindow);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessageTimeout(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam, uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
+
+        public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+
+        public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
+        private static readonly string videoPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "video.mp4");
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [DllImport("user32.dll")]
+        private static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
         public MainWindow()
         {
             InitializeComponent();
-            playImages();
-        }
-        private void Play_Timer_Tick(object sender, EventArgs e)
-        {
-            ShowNextImage();
+            PlayVideo();
+
         }
 
-
-        private void playImages()
+        private void PlayVideo()
         {
-            playTimer = new DispatcherTimer();
-            playTimer.Interval = TimeSpan.FromMilliseconds(playTimeSpan); // 设置每张图片显示的时间间隔（这里设置为2秒）
-            playTimer.Tick += Play_Timer_Tick;
-            playTimer.Start();
-        }
-
-        private void ShowNextImage()
-        {
-            
-            if (currentIndex < imageFiles.Count())
+            // 读取视频文件到内存
+            if (File.Exists(videoPath))
             {
-                BitmapImage bitmap = imageFiles[currentIndex];
-                imageControl.Source = bitmap;
-                currentIndex++;
+                byte[] videoBytes = File.ReadAllBytes(videoPath);
+
+                // 将内存中的视频数据写入临时文件
+                string tempFileFolder = System.IO.Path.GetTempPath();
+                string tmpFilePath = System.IO.Path.Combine(tempFileFolder, $"{Guid.NewGuid()}.mp4");
+                File.WriteAllBytes(tmpFilePath, videoBytes);
+
+                // 设置 MediaElement 的 Source 为临时文件路径
+                videoPlayer.Source = new Uri(tmpFilePath);
+                videoPlayer.Play();
             }
             else
             {
-                imageFiles = GetExsitingFiles();
-                if (imageFiles.Count()==0)
-                {
-                    playTimer.Interval = TimeSpan.FromMilliseconds(checkTimeSpan);
-                }
-                else
-                {
-                   playTimer.Interval = TimeSpan.FromMilliseconds(playTimeSpan);
-                }
-                currentIndex = 0; // 重置索引以重新播放动画
+                Thread.Sleep(5000);
+                PlayVideo();
             }
         }
-        private static List<BitmapImage> GetExsitingFiles()
+        private void videoPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
-            List<BitmapImage> result = new List<BitmapImage>();
-            if (Directory.Exists(ImgFolder))
-            {
-                var files = Directory.GetFiles(ImgFolder).ToList(); // 获取 "imgs" 文件夹下所有文件的路径
-                files?.Sort();
-                foreach (string file in files)
-                {
-                    BitmapImage bitmapImage = new BitmapImage();
-                    using (FileStream fileStream = new FileStream(file, FileMode.Open, FileAccess.Read))
-                    {
-                        bitmapImage.BeginInit();
-                        bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                        bitmapImage.StreamSource = fileStream;
-                        bitmapImage.EndInit();
-                    }
+            videoPlayer.Stop();
+            videoPlayer.Play();
+        }
 
-                    result.Add(bitmapImage); // 获取文件名并添加到列表中
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            IntPtr progman = FindWindow("Progman", null);
+            IntPtr result = IntPtr.Zero;
+
+            // Send 0x052C to Progman. This message directs Progman to spawn a 
+            // WorkerW behind the desktop icons. If it is already there, nothing 
+            // happens.
+            SendMessageTimeout(progman,
+                                   0x052C,
+                                   new IntPtr(0),
+                                   IntPtr.Zero,
+                                   0x0000,
+                                   1000,
+                                   out result);
+
+            IntPtr workerw = IntPtr.Zero;
+
+            // We enumerate all Windows, until we find one, that has the SHELLDLL_DefView 
+            // as a child. 
+            // If we found that window, we take its next sibling and assign it to workerw.
+            EnumWindows(new EnumWindowsProc((tophandle, topparamhandle) =>
+            {
+                IntPtr p = FindWindowEx(tophandle,
+                                            IntPtr.Zero,
+                                            "SHELLDLL_DefView",
+                                            IntPtr.Zero);
+
+                if (p != IntPtr.Zero)
+                {
+                    // Gets the WorkerW Window after the current one.
+                    workerw = FindWindowEx(IntPtr.Zero,
+                                               tophandle,
+                                               "WorkerW",
+                                               IntPtr.Zero);
                 }
 
-            }
-            else
+                return true;
+            }), IntPtr.Zero);
+            // 将 WPF 窗口的句柄设置为另一个窗口的子窗口
+            WindowInteropHelper wpfHelper = new WindowInteropHelper(this);
+            SetParent(wpfHelper.Handle, workerw);
+            RECT rect;
+            if (GetClientRect(workerw, out rect))
             {
-                Directory.CreateDirectory(ImgFolder);
-
+                int width = rect.Right - rect.Left;
+                int height = rect.Bottom - rect.Top;
+                // 调整子窗体大小以填满父窗体客户区
+                MoveWindow(new WindowInteropHelper(this).Handle, 0, 0, width, height, true);
             }
-
-            return result;
         }
     }
 }

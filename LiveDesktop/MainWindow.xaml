@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LiveDesktop"
         mc:Ignorable="d"
-        Title="MainWindow" ResizeMode="NoResize" WindowState="Maximized" WindowStyle="None" AllowsTransparency="True">
+        Title="MainWindow" ResizeMode="NoResize" WindowState="Maximized"  WindowStyle="None" AllowsTransparency="True" Loaded="Window_Loaded">
     <Grid>
-        <Image x:Name="imageControl" Stretch="Fill"/>
+        <MediaElement Name="videoPlayer" LoadedBehavior="Manual" UnloadedBehavior="Stop" MediaEnded="videoPlayer_MediaEnded" Stretch="Fill"/>
     </Grid>
 </Window>
