@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using System.Collections.Generic;
+using System.Security.Policy;
 
 namespace WeatherDesktop
 {
@@ -15,6 +17,8 @@ namespace WeatherDesktop
     {
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+        private static readonly int MaxImageCount = 96;
+        private static readonly string FileFolder = "Images";
         static async Task Main(string[] args)
         {
             //string xmlUrl = @"http://img.nsmc.org.cn/PORTAL/NSMC/XML/FY4A/FY4A_AGRI_IMG_DISK_MTCC_NOM.xml";
@@ -26,26 +30,48 @@ namespace WeatherDesktop
                 if (xmlResponse.IsSuccessStatusCode)
                 {
                     string xmlString = await xmlResponse.Content.ReadAsStringAsync();
-                    var imageUrl = XDocument.Parse(xmlString).Descendants("image").First().Attribute("url").Value;
-                    if (string.IsNullOrEmpty(imageUrl))
+                    var srcImageUrlList = XDocument.Parse(xmlString).Descendants("image").Select(x => x.Attribute("url").Value).ToList();
+                    var exsitingFiles = GetExsitingFiles();
+                    var requiredFileUrls = srcImageUrlList.Where(x => !exsitingFiles.Exists((y => x.ToUpper().Contains(y.ToUpper())))).Take(Math.Min(srcImageUrlList.Count(), MaxImageCount)).ToList();
+                    foreach (var requiredFileUrl in requiredFileUrls)
                     {
-                        Console.WriteLine("Can not get image url");
-                        return;
-                    }
-                    HttpResponseMessage imgResponse = await client.GetAsync(imageUrl);
-                    if (imgResponse.IsSuccessStatusCode)
-                    {
-                        using (Stream stream = await imgResponse.Content.ReadAsStreamAsync())
+
+                        if (string.IsNullOrEmpty(requiredFileUrl))
                         {
-                            var path = MakeImage(stream);
-                            SystemParametersInfo(0x0014, 0, path, 0x01 | 0x02);
+                            Console.WriteLine("Can not get image url");
+                            return;
                         }
-                        Console.WriteLine("Image downloaded successfully.");
+                        HttpResponseMessage imgResponse = await client.GetAsync(requiredFileUrl);
+                        if (imgResponse.IsSuccessStatusCode)
+                        {
+                            using (Stream stream = await imgResponse.Content.ReadAsStreamAsync())
+                            {
+                                var path = MakeImage(stream, Path.GetFileName(requiredFileUrl));
+                                //SystemParametersInfo(0x0014, 0, path, 0x01 | 0x02);
+                            }
+                            Console.WriteLine("Image downloaded successfully.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Error: {imgResponse.StatusCode}");
+                        }
                     }
-                    else
+                    var deletedCount = Math.Max((exsitingFiles.Count() - MaxImageCount), 0);
+                    var deletedFiles = exsitingFiles.Take(deletedCount).ToList();
+                    foreach (var deletedFile in deletedFiles)
                     {
-                        Console.WriteLine($"Error: {imgResponse.StatusCode}");
+                        if (File.Exists(deletedFile))
+                        {
+                            File.Delete(deletedFile); // 删除文件
+
+                            Console.WriteLine("File deleted successfully.");
+                        }
+                        else
+                        {
+                            Console.WriteLine("File does not exist.");
+                        }
                     }
+
                 }
                 else
                 {
@@ -55,7 +81,7 @@ namespace WeatherDesktop
         }
         public static Image ResizeImage(Image originalImage, int width, int height)
         {
-     
+
             Bitmap resizedBitmap = new Bitmap(width, height);
 
             using (Graphics graphics = Graphics.FromImage(resizedBitmap))
@@ -69,7 +95,7 @@ namespace WeatherDesktop
 
             return resizedBitmap;
         }
-        static string MakeImage(Stream stream)
+        static string MakeImage(Stream stream,string fileName)
         {
             // 读取原始图片
             Image originalImage = Image.FromStream(stream);
@@ -85,15 +111,37 @@ namespace WeatherDesktop
                 var startX = (maskedBitmap.Width - resizedImg.Width) / 2;
                 path.AddEllipse(startX, 0, resizedImg.Width, resizedImg.Height);
                 graphics.SetClip(path);
-                graphics.DrawImage(resizedImg, startX,0);
+                graphics.DrawImage(resizedImg, startX, 0);
             }
-
-            string tempDirectory = Path.GetTempPath();
-            var tempFilaname = Path.Combine(tempDirectory, "weather.jpg");
+            var tempFilaname = Path.Combine(ImgFolder, fileName);
             // 保存合成后的圆形图片
             maskedBitmap.Save(tempFilaname);
 
             return tempFilaname;
+        }
+        private static readonly string ImgFolder = Path.Combine(Directory.GetCurrentDirectory(), FileFolder);
+        private static List<string> GetExsitingFiles()
+        {
+            List<string> result = new List<string>();
+            if (Directory.Exists(ImgFolder))
+            {
+                string[] files = Directory.GetFiles(ImgFolder); // 获取 "imgs" 文件夹下所有文件的路径
+
+                foreach (string file in files)
+                {
+                    result.Add(Path.GetFileName(file)); // 获取文件名并添加到列表中
+                }
+
+                Console.WriteLine("Files in the 'imgs' folder:");
+
+            }
+            else
+            {
+                Directory.CreateDirectory(ImgFolder);
+
+            }
+            result.Sort();
+            return result;
         }
     }
 }
