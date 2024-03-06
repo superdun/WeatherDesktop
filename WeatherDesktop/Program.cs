@@ -17,8 +17,8 @@ namespace WeatherDesktop
         private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
         static async Task Main(string[] args)
         {
-            string xmlUrl = @"http://img.nsmc.org.cn/PORTAL/NSMC/XML/FY4A/FY4A_AGRI_IMG_DISK_MTCC_NOM.xml";
-            //string xmlUrl = @"http://img.nsmc.org.cn/PORTAL/NSMC/XML/FY4B/FY4B_AGRI_IMG_DISK_GCLR_NOM.xml";
+            //string xmlUrl = @"http://img.nsmc.org.cn/PORTAL/NSMC/XML/FY4A/FY4A_AGRI_IMG_DISK_MTCC_NOM.xml";
+            string xmlUrl = @"http://img.nsmc.org.cn/PORTAL/NSMC/XML/FY4B/FY4B_AGRI_IMG_DISK_GCLR_NOM.xml";
 
             using (HttpClient client = new HttpClient())
             {
@@ -73,8 +73,8 @@ namespace WeatherDesktop
         {
             // 读取原始图片
             Image originalImage = Image.FromStream(stream);
-            //var resizedImg = ResizeImage(originalImage, 1245, 1350);
-            var resizedImg = ResizeImage(originalImage, 1350, 1350);
+            var resizedImg = ResizeImage(originalImage, 1245, 1350);
+            //var resizedImg = ResizeImage(originalImage, 1350, 1350);
             // 创建一个圆形遮罩层
             Bitmap maskedBitmap = new Bitmap(2560, 1440);
             using (Graphics graphics = Graphics.FromImage(maskedBitmap))
