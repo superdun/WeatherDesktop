@@ -56,19 +56,21 @@ namespace WeatherDesktop
                             Console.WriteLine($"Error: {imgResponse.StatusCode}");
                         }
                     }
+                    exsitingFiles = GetExsitingFiles();
                     var deletedCount = Math.Max((exsitingFiles.Count() - MaxImageCount), 0);
                     var deletedFiles = exsitingFiles.Take(deletedCount).ToList();
                     foreach (var deletedFile in deletedFiles)
                     {
-                        if (File.Exists(deletedFile))
+                        var fullPath = Path.Combine(ImgFolder, deletedFile);
+                        if (File.Exists(fullPath))
                         {
-                            File.Delete(deletedFile); // 删除文件
+                            File.Delete(fullPath); // 删除文件
 
-                            Console.WriteLine("File deleted successfully.");
+                            Console.WriteLine($"File deleted successfully.{fullPath}");
                         }
                         else
                         {
-                            Console.WriteLine("File does not exist.");
+                            Console.WriteLine($"File does not exist.{fullPath}");
                         }
                     }
 
@@ -131,8 +133,6 @@ namespace WeatherDesktop
                 {
                     result.Add(Path.GetFileName(file)); // 获取文件名并添加到列表中
                 }
-
-                Console.WriteLine("Files in the 'imgs' folder:");
 
             }
             else
