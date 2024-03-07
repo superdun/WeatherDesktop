@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" ResizeMode="NoResize" WindowState="Maximized"  WindowStyle="None" AllowsTransparency="True" Loaded="Window_Loaded" ShowInTaskbar="False">
     <Grid>
-        <MediaElement Name="videoPlayer" LoadedBehavior="Manual" UnloadedBehavior="Stop" MediaEnded="videoPlayer_MediaEnded" Stretch="Fill"/>
+        <MediaElement Name="videoPlayer" SpeedRatio="0.1" LoadedBehavior="Manual" UnloadedBehavior="Stop" MediaEnded="videoPlayer_MediaEnded" Stretch="Fill"/>
     </Grid>
 </Window>

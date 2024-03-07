@@ -18,6 +18,7 @@ using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Windows.Forms;
 
 namespace LiveDesktop
 {
@@ -140,17 +141,37 @@ namespace LiveDesktop
 
                 return true;
             }), IntPtr.Zero);
+
+
+            // 获取主显示器（或选择一个特定的显示器）
+            var screen = Screen.AllScreens.Last();
+
+            // 获取显示器的工作区域
+            var workingArea = screen.WorkingArea;
+
+            // 转换工作区域的坐标为设备无关坐标
+            var transform = PresentationSource.FromVisual(this).CompositionTarget.TransformFromDevice;
+            var corner = transform.Transform(new Point(workingArea.Left, workingArea.Top));
+            var size = transform.Transform(new Point(workingArea.Width, workingArea.Height));
+
+            // 调整窗口大小和位置
+            var left = (int)corner.X;
+            var top = (int)corner.Y;
+            var width = (int)size.X;
+            var height = (int)size.Y;
+
             // 将 WPF 窗口的句柄设置为另一个窗口的子窗口
             WindowInteropHelper wpfHelper = new WindowInteropHelper(this);
             SetParent(wpfHelper.Handle, workerw);
-            RECT rect;
-            if (GetClientRect(workerw, out rect))
-            {
-                int width = rect.Right - rect.Left;
-                int height = rect.Bottom - rect.Top;
-                // 调整子窗体大小以填满父窗体客户区
-                MoveWindow(new WindowInteropHelper(this).Handle, 0, 0, width, height, true);
-            }
+            MoveWindow(new WindowInteropHelper(this).Handle, left, top, width, height, true);
+            //RECT rect;
+            //if (GetClientRect(workerw, out rect))
+            //{
+            //    int width = rect.Right - rect.Left;
+            //    int height = rect.Bottom - rect.Top;
+            //    // 调整子窗体大小以填满父窗体客户区
+            //    MoveWindow(new WindowInteropHelper(this).Handle, 0, 0, width, height, true);
+            //}
         }
     }
 }

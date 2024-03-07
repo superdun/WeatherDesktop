@@ -151,7 +151,7 @@ namespace WeatherDesktop
                 }
                 string imageFiles = Path.Combine(TmpImgFolder, "%d.jpg");
                 // FFmpeg命令，-framerate是帧率，-i是输入文件的格式
-                string arguments = $"-framerate 12 -i \"{imageFiles}\" -pix_fmt yuv420p \"{videoPath}\"";
+                string arguments = $"-framerate 60 -i \"{imageFiles}\" -pix_fmt yuv420p \"{videoPath}\"";
 
                 // 创建一个ProcessStartInfo对象
                 ProcessStartInfo startInfo = new ProcessStartInfo(ffmepgPath, arguments)
