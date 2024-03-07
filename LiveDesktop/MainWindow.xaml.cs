@@ -60,6 +60,9 @@ namespace LiveDesktop
 
         [DllImport("user32.dll")]
         private static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+
+        static readonly string  TempFileFolder = System.IO.Path.GetTempPath();
+        static readonly string TmpFilePath = System.IO.Path.Combine(TempFileFolder, $"video.mp4");
         public MainWindow()
         {
             InitializeComponent();
@@ -72,15 +75,18 @@ namespace LiveDesktop
             // 读取视频文件到内存
             if (File.Exists(videoPath))
             {
-                byte[] videoBytes = File.ReadAllBytes(videoPath);
+                //byte[] videoBytes = File.ReadAllBytes(videoPath);
 
-                // 将内存中的视频数据写入临时文件
-                string tempFileFolder = System.IO.Path.GetTempPath();
-                string tmpFilePath = System.IO.Path.Combine(tempFileFolder, $"{Guid.NewGuid()}.mp4");
-                File.WriteAllBytes(tmpFilePath, videoBytes);
+                //// 将内存中的视频数据写入临时文件
+
+                //if (File.Exists(TmpFilePath))
+                //{
+                //    File.Delete(TmpFilePath);
+                //}
+                //File.WriteAllBytes(TmpFilePath, videoBytes);
 
                 // 设置 MediaElement 的 Source 为临时文件路径
-                videoPlayer.Source = new Uri(tmpFilePath);
+                videoPlayer.Source = new Uri(videoPath);
                 videoPlayer.Play();
             }
             else

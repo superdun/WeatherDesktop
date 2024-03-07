@@ -19,7 +19,7 @@ namespace WeatherDesktop
     {
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
-        private static readonly int MaxImageCount = 96;
+        private static readonly int MaxImageCount = 130;
         private static readonly string FileFolder = "Images";
         private static readonly string TmpFileFolder = "TmpImages";
         private static readonly string CurrentFolder = Directory.GetCurrentDirectory();
@@ -27,6 +27,7 @@ namespace WeatherDesktop
         private static readonly string TmpImgFolder = Path.Combine(CurrentFolder, TmpFileFolder);
         private static readonly string ffmepgPath = Path.Combine(CurrentFolder, "ffmpeg.exe");
         private static readonly string videoPath = Path.Combine(CurrentFolder, "video.mp4");
+        private static readonly string DesktopExePath = Path.Combine(CurrentFolder, "LiveDesktop.exe");
         static async Task Main(string[] args)
         {
             //string xmlUrl = @"http://img.nsmc.org.cn/PORTAL/NSMC/XML/FY4A/FY4A_AGRI_IMG_DISK_MTCC_NOM.xml";
@@ -51,7 +52,7 @@ namespace WeatherDesktop
                             return;
                         }
                         //downloadTasks.Add(DownloadAndSaveImageAsync(client, requiredFileUrl));
-                        //await  DownloadAndSaveImageAsync(client, requiredFileUrl);
+                        await  DownloadAndSaveImageAsync(client, requiredFileUrl);
                     }
                     //await Task.WhenAll(downloadTasks);
                     exsitingFiles = GetExsitingFiles(ImgFolder);
@@ -73,7 +74,9 @@ namespace WeatherDesktop
                     }
                     if (requiredFileUrls.Count() > 0)
                     {
+                        KillDesktopProcess();
                         MakeVideo();
+                        StartDesktopProcess();
                     }
                 }
                 else
@@ -81,6 +84,22 @@ namespace WeatherDesktop
                     Console.WriteLine($"Error: {xmlResponse.StatusCode}");
                 }
             }
+        }
+        private static void KillDesktopProcess()
+        {
+            // 按进程名称查找要终止的进程
+            Process[] processes = Process.GetProcessesByName("LiveDesktop");
+
+            // 遍历找到的进程并终止它们
+            foreach (Process process in processes)
+            {
+                process.Kill();
+                Console.WriteLine("Process {0} has been terminated.", process.ProcessName);
+            }
+        }
+        private static void StartDesktopProcess()
+        {
+            Process.Start(DesktopExePath);
         }
         private static async Task DownloadAndSaveImageAsync(HttpClient client, string imageUrl)
         {

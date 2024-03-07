@@ -19,6 +19,15 @@ namespace End
             process.Start();
             Console.WriteLine("SUCCESS,Press Enter to exit");
             Console.ReadLine();
+            // 按进程名称查找要终止的进程
+            Process[] processes = Process.GetProcessesByName("LiveDesktop");
+
+            // 遍历找到的进程并终止它们
+            foreach (Process p in processes)
+            {
+                process.Kill();
+                Console.WriteLine("Process {0} has been terminated.", p.ProcessName);
+            }
         }
     }
 }
