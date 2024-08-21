@@ -14,7 +14,7 @@ namespace Start
         static void Main(string[] args)
         {
             string executablePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"WeatherDesktop.exe");
-            string command = $"/Create  /TN WeatherDesktop /TR \"{executablePath}\" /sc DAILY /st 10:01";
+            string command = $"/Create  /TN WeatherDesktop /TR \"\\\"{executablePath}\"\\\" /sc DAILY /st 10:01";
             Console.WriteLine(command);
             Process process = new Process();
             process.StartInfo.FileName = "schtasks";
